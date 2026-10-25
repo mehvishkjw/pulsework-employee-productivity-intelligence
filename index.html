@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PulseWork | Productivity Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{
+ --canvas:#F7F5FA;--surface:#FFFFFF;--ink:#322E3B;--muted:#827C8D;--line:#E8E3EC;
+ --rose:#F8B3C2;--rose-strong:#E98FA7;--mint:#A9DFBF;--blue:#AEC6CF;--lav:#D7C6EF;
+ --peach:#F6D6C5;--lemon:#F0E9A6;--shadow:0 12px 34px rgba(65,48,80,.065);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:'DM Sans',sans-serif;overflow-x:hidden}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{display:flex;min-height:100vh}
+.sidebar{width:246px;flex:0 0 246px;background:rgba(255,255,255,.85);border-right:1px solid var(--line);padding:27px 17px;display:flex;flex-direction:column;position:relative;z-index:2}
+.brand{display:flex;align-items:center;gap:11px;padding:0 9px 31px}
+.brand-mark{width:39px;height:39px;border-radius:13px;background:linear-gradient(145deg,var(--rose),var(--lav));display:grid;place-items:center;font-size:20px;color:var(--ink);box-shadow:0 7px 18px #f8b3c24a}
+.brand-title{font:800 17px Manrope,sans-serif;letter-spacing:-.6px}.brand-title span{color:#D77893}
+.brand-sub{font-size:9px;color:var(--muted);letter-spacing:1.6px;margin-top:2px}
+.nav-label{font-size:9px;font-weight:800;letter-spacing:1.8px;color:#A19AA9;padding:0 12px;margin:14px 0 9px}
+.nav{display:grid;gap:5px}
+.nav-item{border:0;background:transparent;color:#756E7F;text-align:left;display:flex;align-items:center;gap:12px;padding:12px 13px;border-radius:12px;font-size:12px;font-weight:600;transition:.2s;position:relative}
+.nav-item .ico{font-size:17px;width:20px;text-align:center}
+.nav-item:hover{background:#F7F2F8;color:var(--ink);transform:translateX(2px)}
+.nav-item.active{background:linear-gradient(100deg,#FCE5EB,#F6EEF9);color:#4B3D4A}
+.nav-item.active:before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 4px 4px 0;background:var(--rose-strong)}
+.side-bottom{margin-top:auto}
+.health-card{background:linear-gradient(145deg,#FCE9EE,#F0EAF8);border:1px solid #F0DDE8;border-radius:17px;padding:15px;margin:18px 3px 0;overflow:hidden;position:relative}
+.health-card:after{content:"";position:absolute;width:90px;height:90px;right:-30px;top:-30px;border-radius:50%;background:#fff7;animation:breathe 5s ease-in-out infinite}
+.health-kicker{font-size:9px;letter-spacing:1.4px;font-weight:800;color:#A36B82}.health-card strong{display:block;font:800 15px Manrope;margin:8px 0 5px}.health-card p{font-size:10px;line-height:1.55;color:#817381;margin:0 0 12px}
+.health-card button{border:0;background:var(--ink);color:white;border-radius:9px;padding:9px 10px;font-size:10px;font-weight:700}
+.main{min-width:0;flex:1;padding:25px clamp(17px,3vw,42px) 30px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+.crumb{font-size:11px;color:var(--muted)}.crumb b{color:var(--ink)}
+.top-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.status{display:flex;align-items:center;gap:7px;border:1px solid #DCEBDD;background:#F0FAF2;color:#527D61;border-radius:30px;padding:8px 11px;font-size:10px;font-weight:700}
+.dot{width:7px;height:7px;border-radius:50%;background:#72C78B;box-shadow:0 0 0 4px #72c78b25;animation:blink 1.8s infinite}
+.user{display:flex;align-items:center;gap:9px;border-left:1px solid var(--line);padding-left:15px;font-size:11px;font-weight:700}
+.avatar{width:32px;height:32px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(140deg,var(--blue),var(--lav));font-size:11px}
+.btn{border:1px solid var(--line);border-radius:10px;background:white;padding:9px 12px;font-size:10px;font-weight:700;color:var(--ink);transition:.2s}
+.btn:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.btn-primary{background:var(--rose);border-color:#F2A8B9}.btn-primary:hover{background:#F4A4B7}
+.page{display:none;animation:enter .35s ease both}.page.active{display:block}
+@keyframes enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0 0 20px}
+.kicker{font-size:9px;letter-spacing:2px;font-weight:800;color:#C87991;margin-bottom:8px}
+h1{font:800 clamp(25px,2.5vw,35px)/1.12 Manrope,sans-serif;letter-spacing:-1.3px;margin:0}
+.heading p{font-size:12px;color:var(--muted);margin:9px 0 0;line-height:1.6}
+.heading-actions{display:flex;gap:8px;flex-wrap:wrap}
+.ticker{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid #E8DDEB;border-radius:13px;background:rgba(255,255,255,.75);margin-bottom:20px;overflow:hidden}
+.ticker-label{display:flex;align-items:center;gap:7px;white-space:nowrap;font-size:9px;font-weight:800;letter-spacing:1.3px;color:#806A83}
+.ticker-label .dot{background:#D77893;box-shadow:0 0 0 4px #d7789320}
+.ticker-window{min-width:0;overflow:hidden;flex:1}
+.ticker-track{display:flex;gap:34px;white-space:nowrap;width:max-content;font-size:10px;color:#827C8D;animation:ticker 34s linear infinite}
+.ticker-track b{color:#4E4657}.ticker-track em{font-style:normal;color:#C87991;font-weight:700}
+@keyframes ticker{to{transform:translateX(-50%)}}
+@keyframes blink{50%{opacity:.3}}@keyframes breathe{50%{transform:scale(1.25);opacity:.65}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.motion-toggle[aria-pressed="true"]{background:#F4EDF7;border-color:#D6C5E5}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:17px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:17px;padding:17px 17px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .25s,border-color .25s}
+.kpi:hover{transform:translateY(-4px);border-color:#E8B7C6}
+.kpi:after{content:"";position:absolute;width:90px;height:90px;border-radius:50%;right:-35px;top:-40px;opacity:.65}
+.kpi.rose:after{background:#FCE0E8}.kpi.mint:after{background:#DDF4E5}.kpi.blue:after{background:#DFEBF0}.kpi.lav:after{background:#EEE4F9}
+.kpi-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;font-size:10px;color:var(--muted);font-weight:600}
+.kpi-icon{width:29px;height:29px;border-radius:10px;display:grid;place-items:center;font-size:15px}
+.rose .kpi-icon{background:#FCE5EB}.mint .kpi-icon{background:#E6F7EC}.blue .kpi-icon{background:#E7F0F3}.lav .kpi-icon{background:#F1EAF8}
+.kpi-value{font:800 29px Manrope;letter-spacing:-1.2px;margin:14px 0 7px;position:relative;z-index:1}
+.kpi-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:9px;color:var(--muted);position:relative;z-index:1}
+.change{font-weight:800;padding:4px 6px;border-radius:6px}.change.good{color:#4D9568;background:#EAF8EE}.change.bad{color:#B86C81;background:#FCECF0}.change.neutral{color:#658997;background:#EAF2F5}
+.grid-2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(270px,.9fr);gap:15px;margin-bottom:16px}
+.grid-equal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-bottom:16px}
+.card{min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:17px;padding:19px;box-shadow:var(--shadow)}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.card-title{font:800 13px Manrope;letter-spacing:-.2px}.card-sub{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.5}
+.pill{font-size:9px;padding:6px 8px;border-radius:8px;font-weight:800;white-space:nowrap;background:#F9E8EE;color:#A65D75}
+.pill.mint{background:#E9F7ED;color:#558767}.pill.blue{background:#EAF2F5;color:#638996}.pill.lav{background:#F1EAF8;color:#8069A1}
+.chart-box{height:235px;position:relative}
+.chart-box.small{height:195px}
+.insight{display:flex;align-items:flex-start;gap:12px;background:linear-gradient(110deg,#FCE9EF,#F4EFF9);border:1px solid #F0DFE9;border-radius:15px;padding:15px 17px;margin-bottom:17px}
+.insight-icon{flex:0 0 34px;height:34px;border-radius:11px;background:#fff;display:grid;place-items:center;font-size:17px}
+.insight strong{font:800 12px Manrope;display:block;margin-bottom:5px}.insight p{font-size:11px;color:#7D7382;line-height:1.6;margin:0}.insight button{margin-left:auto;white-space:nowrap}
+.table-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.search{min-width:170px;flex:1;background:#FCFBFD;border:1px solid var(--line);border-radius:10px;padding:10px 11px;font-size:11px;outline:none;color:var(--ink)}
+.search:focus,select:focus,input:focus{border-color:#D99AAC;box-shadow:0 0 0 3px #f8b3c225;outline:none}
+select,.field input,.field select{background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:11px;color:var(--ink);max-width:100%}
+.table-wrap{overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:10px;white-space:nowrap}
+th{text-align:left;padding:11px 10px;color:#968D9E;font-size:9px;font-weight:800;letter-spacing:.7px;border-bottom:1px solid var(--line)}
+td{padding:12px 10px;border-bottom:1px solid #F1EDF4;color:#5E5667}
+tbody tr:hover{background:#FCF7FA}
+.employee{display:flex;align-items:center;gap:9px;font-weight:700;color:var(--ink)}
+.emp-avatar{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-size:9px;font-weight:800;background:#F9E5EB}
+.emp-avatar.mint{background:#E6F5EB}.emp-avatar.blue{background:#E5EFF2}.emp-avatar.lav{background:#F0E9F8}
+.status-pill{display:inline-block;padding:5px 7px;border-radius:6px;font-size:9px;font-weight:800}
+.status-pill.high{background:#FCE9EE;color:#B6657D}.status-pill.watch{background:#F8F1D8;color:#98833B}.status-pill.steady{background:#E7F6EB;color:#528563}
+.mini-bar{display:flex;align-items:center;gap:7px}.mini-bar span{height:5px;background:#F0EAF2;border-radius:8px;display:inline-block;width:58px;overflow:hidden}.mini-bar i{display:block;height:100%;border-radius:8px;background:var(--rose-strong)}
+.heatmap{display:grid;grid-template-columns:130px repeat(5,minmax(35px,1fr));gap:5px;align-items:center;font-size:10px}
+.heat-head{font-size:9px;color:#9A91A2;text-align:center;font-weight:800;padding-bottom:6px}
+.heat-label{color:#625A6B;font-weight:600;padding:7px 2px}
+.heat-cell{height:31px;border-radius:7px;display:grid;place-items:center;font-size:9px;font-weight:800;color:#554B5B;cursor:pointer;border:1px solid transparent;transition:.18s}
+.heat-cell:hover,.heat-cell.selected{outline:2px solid #322E3B;outline-offset:1px;transform:scale(1.04)}
+.heat-1{background:#E6F5E9}.heat-2{background:#D8EDE2}.heat-3{background:#F9EFCB}.heat-4{background:#F8D8DE}.heat-5{background:#F1B4C3}
+.heat-legend{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:14px;font-size:9px;color:var(--muted)}
+.legend-swatch{width:10px;height:10px;border-radius:3px;display:inline-block}
+.recommend-list{display:grid;gap:9px}
+.recommend{display:flex;gap:11px;padding:12px;border:1px solid #EEE8F0;border-radius:12px;background:#FEFDFE;transition:.2s}
+.recommend:hover{transform:translateX(3px);border-color:#E9B9C8}
+.rec-icon{flex:0 0 31px;height:31px;border-radius:10px;display:grid;place-items:center;background:#FCE9EF;font-size:15px}
+.recommend:nth-child(2) .rec-icon{background:#E7F6EC}.recommend:nth-child(3) .rec-icon{background:#E8F0F3}.recommend:nth-child(4) .rec-icon{background:#F1EAF8}
+.rec-copy{min-width:0;flex:1}.rec-copy strong{font-size:11px;display:block;margin:1px 0 4px}.rec-copy p{font-size:10px;color:var(--muted);line-height:1.5;margin:0}
+.rec-meta{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:7px}.rec-meta span{font-size:8px;font-weight:800;color:#8C8191;background:#F4F0F5;padding:4px 6px;border-radius:5px}
+.rec-action{align-self:center;border:1px solid var(--line);background:white;border-radius:8px;padding:7px 8px;font-size:9px;font-weight:800;color:#5F5365}
+.sim-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.85fr);gap:15px}
+.slider-list{display:grid;gap:20px}
+.slider-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.slider-row label{font-size:11px;font-weight:700}.slider-row output{font:800 12px Manrope;background:#FCE9EF;color:#9B5D72;border-radius:7px;padding:5px 8px}
+.slider-row input{grid-column:1/-1;width:100%;accent-color:#D77893}
+.slider-note{font-size:10px;color:var(--muted);line-height:1.5}
+.scenario-box{background:linear-gradient(145deg,#FCE9EF,#F2EEF9);border:1px solid #EBDDEB;border-radius:15px;padding:17px}
+.scenario-number{font:800 34px Manrope;letter-spacing:-1px;margin:8px 0}
+.scenario-label{font-size:10px;color:#827587}
+.scenario-stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}
+.scenario-stat{background:#ffffffa6;border:1px solid #ffffff;border-radius:10px;padding:11px}
+.scenario-stat span{font-size:9px;color:#877B8C;display:block;margin-bottom:6px}.scenario-stat strong{font:800 16px Manrope}
+.progress{height:8px;background:#E6DDEB;border-radius:10px;overflow:hidden;margin:12px 0 7px}
+.progress span{display:block;height:100%;width:60%;border-radius:10px;background:linear-gradient(90deg,var(--rose-strong),var(--lav));transition:width .4s}
+.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.field{display:grid;gap:6px}.field label{font-size:10px;font-weight:800;color:#756B7D}.field input,.field select{width:100%;padding:11px}
+.upload-zone{border:1px dashed #C6B7D2;background:#FBF8FC;border-radius:14px;padding:22px;text-align:center}
+.upload-zone .upload-icon{font-size:25px}.upload-zone strong{display:block;font:800 13px Manrope;margin:9px 0 5px}.upload-zone p{font-size:10px;color:var(--muted);margin:0 0 14px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--ink);color:white;padding:12px 16px;border-radius:11px;box-shadow:0 10px 35px #322e3b33;font-size:11px;z-index:9;opacity:0;transform:translateY(10px);transition:.25s;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+.footer{font-size:9px;color:#A59CAB;text-align:center;padding:22px 0 5px}
+@media(max-width:1050px){.sidebar{width:210px;flex-basis:210px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-2,.sim-grid{grid-template-columns:1fr}}
+@media(max-width:760px){.app{display:block}.sidebar{width:auto;border-right:0;border-bottom:1px solid var(--line);padding:14px 15px}.brand{padding:0 3px 12px}.side-bottom,.nav-label{display:none}.nav{display:flex;overflow:auto;gap:5px}.nav-item{white-space:nowrap;padding:10px 11px;font-size:10px}.nav-item .ico{width:auto}.main{padding:17px 14px 25px}.topbar{align-items:flex-start}.user span{display:none}.heading{align-items:flex-start;flex-direction:column}.heading-actions{width:100%}.grid-equal{grid-template-columns:1fr}.kpis{gap:9px}.kpi{padding:13px}.kpi-value{font-size:25px}.kpi-top{font-size:9px}.chart-box{height:220px}.heatmap{grid-template-columns:90px repeat(5,minmax(30px,1fr));gap:3px}.heat-cell{height:27px}.card{padding:14px}.field-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+body.motion-paused *,body.motion-paused *:before,body.motion-paused *:after{animation-play-state:paused!important}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="brand-mark">✳</div><div><div class="brand-title">pulse<span>work</span></div><div class="brand-sub">PRODUCTIVITY INTELLIGENCE</div></div></div>
+  <div class="nav-label">WORKSPACE</div>
+  <nav class="nav" aria-label="Main navigation">
+    <button class="nav-item active" data-page="overview"><span class="ico">◫</span> Overview</button>
+    <button class="nav-item" data-page="workload"><span class="ico">▦</span> Workload map</button>
+    <button class="nav-item" data-page="people"><span class="ico">♙</span> Team analytics</button>
+    <button class="nav-item" data-page="interventions"><span class="ico">✦</span> Interventions <span class="pill" style="margin-left:auto">4</span></button>
+    <button class="nav-item" data-page="simulator"><span class="ico">⌁</span> What-if lab</button>
+    <button class="nav-item" data-page="data"><span class="ico">↥</span> Data centre</button>
+  </nav>
+  <div class="side-bottom">
+    <div class="nav-label">WORKFORCE WELLBEING</div>
+    <div class="health-card"><div class="health-kicker">THIS WEEK'S SIGNAL</div><strong>Load is outpacing output.</strong><p>Overtime is rising faster than completed work. Start with capacity balance, not longer hours.</p><button type="button" data-go="interventions">Explore actions ↗</button></div>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="crumb">PulseWork / <b id="crumbPage">Overview</b></div>
+    <div class="top-actions">
+      <button class="btn motion-toggle" id="motionToggle" type="button" aria-pressed="false">Ⅱ Pause motion</button>
+      <div class="status"><span class="dot"></span> Demo environment</div>
+      <div class="user"><div class="avatar">PW</div><span>People Operations</span></div>
+    </div>
+  </header>
+  <div class="ticker"><div class="ticker-label"><span class="dot"></span> LIVE PULSE</div><div class="ticker-window"><div class="ticker-track" id="tickerTrack"></div></div><span id="clock" style="font-size:9px;color:#9A8EA0;white-space:nowrap">SYNCING</span></div>
+
+  <section class="page active" id="page-overview">
+    <div class="heading"><div><div class="kicker">PEOPLE ANALYTICS / 01</div><h1>Productivity, in perspective.</h1><p>Spot the pressure points behind declining output—and rebalance work before burnout becomes attrition.</p></div><div class="heading-actions"><button class="btn" id="refreshBtn">↻ Refresh signals</button><button class="btn btn-primary" data-go="interventions">View action plan ↗</button></div></div>
+    <div class="kpis">
+      <article class="kpi rose"><div class="kpi-top">Productivity index <span class="kpi-icon">↗</span></div><div class="kpi-value count" data-target="74" data-suffix="/100">0</div><div class="kpi-bottom"><span>vs. last month</span><span class="change bad">−6.8%</span></div></article>
+      <article class="kpi mint"><div class="kpi-top">Capacity utilised <span class="kpi-icon">◴</span></div><div class="kpi-value count" data-target="91" data-suffix="%">0</div><div class="kpi-bottom"><span>Recommended: 75–85%</span><span class="change bad">+9 pts</span></div></article>
+      <article class="kpi blue"><div class="kpi-top">Overtime hours <span class="kpi-icon">◷</span></div><div class="kpi-value count" data-target="684" data-suffix="h">0</div><div class="kpi-bottom"><span>Across 30 days</span><span class="change bad">+18.4%</span></div></article>
+      <article class="kpi lav"><div class="kpi-top">On-time completion <span class="kpi-icon">✓</span></div><div class="kpi-value count" data-target="78" data-suffix="%">0</div><div class="kpi-bottom"><span>Target: 92%</span><span class="change bad">−14 pts</span></div></article>
+    </div>
+    <div class="insight"><div class="insight-icon">✦</div><div><strong>AI signal: more hours are not translating into more output.</strong><p>Teams above 10 overtime hours per person show a 17% lower on-time completion rate in this demo dataset. Review task switching and work-in-progress before adding capacity.</p></div><button class="btn" data-go="workload">Inspect pattern</button></div>
+    <div class="grid-2">
+      <div class="card"><div class="card-head"><div><div class="card-title">Hours vs. output efficiency</div><div class="card-sub">Weekly trend · higher output per hour is better</div></div><span class="pill">30-day view</span></div><div class="chart-box"><canvas id="trendChart" aria-label="Weekly overtime and productivity trend"></canvas></div></div>
+      <div class="card"><div class="card-head"><div><div class="card-title">Where pressure is building</div><div class="card-sub">Workload pressure by function</div></div><span class="pill blue">Team pulse</span></div><div class="chart-box"><canvas id="pressureChart" aria-label="Workload pressure by function"></canvas></div></div>
+    </div>
+    <div class="grid-equal">
+      <div class="card"><div class="card-head"><div><div class="card-title">Workforce health mix</div><div class="card-sub">Distribution by risk signal, not employee diagnosis</div></div><span class="pill mint">Snapshot</span></div><div class="chart-box small"><canvas id="healthChart" aria-label="Employee workload health mix"></canvas></div></div>
+      <div class="card"><div class="card-head"><div><div class="card-title">Recommended next moves</div><div class="card-sub">Ranked by potential impact and urgency</div></div><span class="pill">Priority queue</span></div><div class="recommend-list" id="overviewRecs"></div></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-workload">
+    <div class="heading"><div><div class="kicker">CAPACITY DIAGNOSTICS / 02</div><h1>Map the workload.</h1><p>Find teams where demand, overtime and missed commitments overlap. Select a cell to inspect the signal.</p></div><div class="heading-actions"><button class="btn btn-primary" data-go="simulator">Test a rebalance ↗</button></div></div>
+    <div class="grid-2">
+      <div class="card"><div class="card-head"><div><div class="card-title">Workload pressure matrix</div><div class="card-sub">Relative pressure score by team and weekday · illustrative data</div></div><span class="pill">Select any cell</span></div><div class="heatmap" id="heatmap"></div><div class="heat-legend"><span>Lower pressure</span><i class="legend-swatch" style="background:#E6F5E9"></i><i class="legend-swatch" style="background:#D8EDE2"></i><i class="legend-swatch" style="background:#F9EFCB"></i><i class="legend-swatch" style="background:#F8D8DE"></i><i class="legend-swatch" style="background:#F1B4C3"></i><span>Higher pressure</span></div><div id="heatDetail" class="notice" style="margin-top:14px;border-radius:10px;padding:12px;font-size:11px;background:#F9F5FA;border:1px solid #EEE4F0">Select a cell to see the workload signal.</div></div>
+      <div class="card"><div class="card-head"><div><div class="card-title">Capacity vs. demand</div><div class="card-sub">Planned capacity compared with assigned workload</div></div><span class="pill blue">Hours / week</span></div><div class="chart-box"><canvas id="capacityChart"></canvas></div></div>
+    </div>
+    <div class="card"><div class="card-head"><div><div class="card-title">Bottleneck register</div><div class="card-sub">Operational causes that may be suppressing productivity</div></div><span class="pill">4 signals</span></div><div class="table-wrap"><table><thead><tr><th>FUNCTION</th><th>PRIMARY SIGNAL</th><th>PRESSURE</th><th>LIKELY BOTTLENECK</th><th>FIRST ACTION</th></tr></thead><tbody id="bottleneckRows"></tbody></table></div></div>
+  </section>
+
+  <section class="page" id="page-people">
+    <div class="heading"><div><div class="kicker">TEAM ANALYTICS / 03</div><h1>Understand the people signals.</h1><p>Compare overtime, attendance, completion and engagement together. Use signals to guide a conversation—not to label individuals.</p></div><div class="heading-actions"><button class="btn" id="exportPeople">Export filtered CSV ↓</button></div></div>
+    <div class="card">
+      <div class="card-head"><div><div class="card-title">Employee signal explorer</div><div class="card-sub">Synthetic demo data · search, filter, sort and inspect</div></div><span class="pill blue" id="employeeCount">12 employees</span></div>
+      <div class="table-tools"><input class="search" id="employeeSearch" placeholder="Search name, role or team…" aria-label="Search employees"><select id="teamFilter" aria-label="Filter by team"><option value="All">All teams</option></select><select id="riskFilter" aria-label="Filter by risk"><option value="All">All signals</option><option value="High">High pressure</option><option value="Watch">Watch</option><option value="Steady">Steady</option></select><select id="sortFilter" aria-label="Sort employees"><option value="risk">Sort: pressure</option><option value="overtime">Sort: overtime</option><option value="completion">Sort: completion</option><option value="engagement">Sort: engagement</option></select></div>
+      <div class="table-wrap"><table><thead><tr><th>EMPLOYEE / ROLE</th><th>TEAM</th><th>WEEKLY HOURS</th><th>OVERTIME</th><th>ABSENCE DAYS</th><th>COMPLETION</th><th>ENGAGEMENT</th><th>PRESSURE SIGNAL</th></tr></thead><tbody id="employeeRows"></tbody></table></div>
+    </div>
+    <div class="grid-equal" style="margin-top:15px">
+      <div class="card"><div class="card-head"><div><div class="card-title">Engagement vs. completion</div><div class="card-sub">Explore whether lower engagement co-occurs with delivery risk</div></div><span class="pill mint">Correlation view</span></div><div class="chart-box"><canvas id="scatterChart"></canvas></div></div>
+      <div class="card"><div class="card-head"><div><div class="card-title">Employee signal detail</div><div class="card-sub">Select an employee in the table to view the combined signal</div></div><span class="pill blue">Detail panel</span></div><div id="employeeDetail" style="padding:12px 2px;color:var(--muted);font-size:11px;line-height:1.7">Choose a person from the table to inspect their workload pattern and a suggested next step.</div></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-interventions">
+    <div class="heading"><div><div class="kicker">ACTION DESIGN / 04</div><h1>Intervene where it counts.</h1><p>Practical workload interventions to protect delivery and reduce sustained overload. Recommendations are decision support, not automated HR decisions.</p></div></div>
+    <div class="grid-2">
+      <div class="card"><div class="card-head"><div><div class="card-title">Intervention priority board</div><div class="card-sub">Suggested actions based on combined operational signals</div></div><span class="pill">4 actions</span></div><div class="recommend-list" id="allRecs"></div></div>
+      <div class="card"><div class="card-head"><div><div class="card-title">Intervention impact estimate</div><div class="card-sub">Illustrative contribution to reducing workload pressure</div></div><span class="pill mint">Scenario only</span></div><div class="chart-box"><canvas id="impactChart"></canvas></div><p class="slider-note">Impact estimates are directional and should be validated against team-level baseline data before implementation.</p></div>
+    </div>
+    <div class="card"><div class="card-head"><div><div class="card-title">Action checklist</div><div class="card-sub">Track proposed actions locally during this session</div></div><span class="pill blue" id="checkProgress">0 / 4 done</span></div><div id="actionChecklist" class="recommend-list"></div></div>
+  </section>
+
+  <section class="page" id="page-simulator">
+    <div class="heading"><div><div class="kicker">SCENARIO PLANNING / 05</div><h1>What if we worked differently?</h1><p>Adjust operating assumptions and see how a balanced intervention portfolio could shift delivery outcomes.</p></div><div class="heading-actions"><button class="btn" id="resetScenario">Reset assumptions ↺</button></div></div>
+    <div class="sim-grid">
+      <div class="card"><div class="card-head"><div><div class="card-title">Intervention controls</div><div class="card-sub">Move the sliders to test a plausible workload plan</div></div><span class="pill">Live model</span></div>
+        <div class="slider-list">
+          <div class="slider-row"><label for="rebalance">Workload redistributed to available capacity</label><output id="rebalanceOut">15%</output><input id="rebalance" type="range" min="0" max="40" value="15"></div>
+          <div class="slider-row"><label for="automation">Repetitive work automated</label><output id="automationOut">10%</output><input id="automation" type="range" min="0" max="35" value="10"></div>
+          <div class="slider-row"><label for="meeting">Meeting load reduced</label><output id="meetingOut">12%</output><input id="meeting" type="range" min="0" max="30" value="12"></div>
+          <div class="slider-row"><label for="recovery">Protected focus / recovery time</label><output id="recoveryOut">2 h</output><input id="recovery" type="range" min="0" max="5" value="2"></div>
+        </div><p class="slider-note" style="margin-top:20px">The model uses transparent, illustrative weights to show how operational changes may interact. It is not a validated predictive model.</p>
+      </div>
+      <div class="scenario-box"><div class="kicker">PROJECTED SCENARIO</div><div class="scenario-label">Potential on-time completion</div><div class="scenario-number" id="scenarioCompletion">86%</div><div class="progress"><span id="scenarioProgress"></span></div><div class="scenario-label" id="scenarioCaption">+8 pts vs. current baseline</div><div class="scenario-stats"><div class="scenario-stat"><span>Overtime reduction</span><strong id="overtimeReduction">−19%</strong></div><div class="scenario-stat"><span>Capacity pressure</span><strong id="pressureReduction">−14 pts</strong></div><div class="scenario-stat"><span>Output efficiency</span><strong id="efficiencyGain">+11%</strong></div><div class="scenario-stat"><span>Intervention mix</span><strong id="interventionMix">Balanced</strong></div></div><button class="btn btn-primary" id="saveScenario" style="width:100%;margin-top:15px">Save scenario summary ↓</button></div>
+    </div>
+    <div class="card" style="margin-top:15px"><div class="card-head"><div><div class="card-title">Baseline vs. proposed scenario</div><div class="card-sub">Illustrative directional comparison across four indicators</div></div></div><div class="chart-box"><canvas id="scenarioChart"></canvas></div></div>
+  </section>
+
+  <section class="page" id="page-data">
+    <div class="heading"><div><div class="kicker">DATA MANAGEMENT / 06</div><h1>Bring your own workforce data.</h1><p>Upload a CSV to replace the demo employee table for this browser session, or download a template to prepare your data.</p></div></div>
+    <div class="grid-equal">
+      <div class="card"><div class="card-head"><div><div class="card-title">Upload workforce CSV</div><div class="card-sub">Data stays in this browser session; it is not sent to a server.</div></div><span class="pill blue">Local import</span></div><div class="upload-zone"><div class="upload-icon">↥</div><strong>Drop a CSV or choose a file</strong><p>Recommended columns: name, role, team, hours, overtime, absence, completion, engagement</p><input type="file" id="csvFile" accept=".csv,text/csv" aria-label="Choose workforce CSV file" style="max-width:100%;font-size:10px"><div style="margin-top:14px"><button class="btn btn-primary" id="loadCsv">Import CSV</button></div></div><div id="importStatus" style="font-size:10px;color:var(--muted);margin-top:12px">Using synthetic sample data until a file is imported.</div></div>
+      <div class="card"><div class="card-head"><div><div class="card-title">Data template & governance</div><div class="card-sub">Keep fields consistent and use proportionate access controls.</div></div></div><div class="recommend-list"><div class="recommend"><div class="rec-icon">▤</div><div class="rec-copy"><strong>Download CSV template</strong><p>Includes column headers and example records for the employee explorer.</p><div class="rec-meta"><span>CSV</span><span>Editable</span></div></div><button class="rec-action" id="templateBtn">Download</button></div><div class="recommend"><div class="rec-icon">⌕</div><div class="rec-copy"><strong>Data quality checks</strong><p>Numeric fields are validated, incomplete rows are skipped, and values are bounded to sensible ranges.</p><div class="rec-meta"><span>Validation</span><span>Local processing</span></div></div></div><div class="recommend"><div class="rec-icon">♡</div><div class="rec-copy"><strong>Responsible use</strong><p>Use aggregated patterns for capacity planning. Do not infer health conditions or make high-stakes employee decisions from proxy metrics.</p><div class="rec-meta"><span>Human review</span><span>Privacy first</span></div></div></div></div></div>
+    </div>
+    <div class="card"><div class="card-head"><div><div class="card-title">Current session dataset</div><div class="card-sub">Preview the records currently powering the team explorer</div></div><button class="btn" id="exportAll">Export current data ↓</button></div><div class="table-wrap"><table><thead><tr><th>NAME</th><th>ROLE</th><th>TEAM</th><th>HOURS</th><th>OVERTIME</th><th>ABSENCE</th><th>COMPLETION</th><th>ENGAGEMENT</th></tr></thead><tbody id="dataRows"></tbody></table></div></div>
+  </section>
+  <div class="footer">PULSEWORK · PRODUCTIVITY INTELLIGENCE · DEMO DATA · HUMAN-IN-THE-LOOP DECISION SUPPORT</div>
+</main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const palette={rose:'#F8B3C2',roseDeep:'#D77893',mint:'#A9DFBF',blue:'#AEC6CF',lav:'#D7C6EF',peach:'#F6D6C5',lemon:'#F0E9A6',ink:'#322E3B',muted:'#827C8D',line:'#E8E3EC'};
+let employees=[
+{name:'Aarav Mehta',role:'Product Manager',team:'Product',hours:52,overtime:12,absence:1,completion:72,engagement:58},
+{name:'Diya Nair',role:'UX Designer',team:'Product',hours:44,overtime:4,absence:0,completion:91,engagement:82},
+{name:'Kabir Shah',role:'Software Engineer',team:'Engineering',hours:56,overtime:16,absence:2,completion:64,engagement:49},
+{name:'Ananya Rao',role:'QA Analyst',team:'Engineering',hours:51,overtime:11,absence:1,completion:69,engagement:57},
+{name:'Rohan Iyer',role:'Data Analyst',team:'Analytics',hours:49,overtime:9,absence:0,completion:78,engagement:71},
+{name:'Sara Thomas',role:'BI Specialist',team:'Analytics',hours:43,overtime:3,absence:0,completion:94,engagement:87},
+{name:'Ishaan Kapoor',role:'Account Lead',team:'Sales',hours:54,overtime:14,absence:2,completion:67,engagement:52},
+{name:'Mira Desai',role:'Sales Associate',team:'Sales',hours:47,overtime:7,absence:1,completion:81,engagement:73},
+{name:'Arjun Sen',role:'Campaign Manager',team:'Marketing',hours:53,overtime:13,absence:1,completion:70,engagement:61},
+{name:'Tara Menon',role:'Content Strategist',team:'Marketing',hours:42,overtime:2,absence:0,completion:92,engagement:84},
+{name:'Vivaan Khanna',role:'Operations Lead',team:'Operations',hours:57,overtime:17,absence:3,completion:61,engagement:46},
+{name:'Nisha Pillai',role:'Process Analyst',team:'Operations',hours:46,overtime:6,absence:1,completion:83,engagement:76}
+];
+const original=employees.map(e=>({...e}));
+const teams=['Product','Engineering','Analytics','Sales','Marketing','Operations'];
+const recommendations=[
+{icon:'⚖',title:'Rebalance active work-in-progress',desc:'Move lower-priority tasks from overloaded Engineering and Operations teams to available capacity. Add explicit owners and handoff dates.',impact:'High impact',time:'1–2 weeks',priority:'01'},
+{icon:'◷',title:'Set an overtime guardrail',desc:'Review repeated weeks above 10 overtime hours. Escalate workload, dependencies or scope before approving more hours.',impact:'High impact',time:'Immediate',priority:'02'},
+{icon:'✧',title:'Protect focus blocks',desc:'Pilot meeting-free blocks and batch recurring status updates to reduce context switching for delivery teams.',impact:'Medium impact',time:'1 week',priority:'03'},
+{icon:'♡',title:'Run manager-led capacity check-ins',desc:'Use engagement and absence trends as prompts for a confidential conversation—not as standalone performance judgements.',impact:'Preventive',time:'Weekly',priority:'04'}
+];
+let charts={}, selectedEmployee=null, doneActions=new Set(), currentPage='overview';
+function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),2500)}
+function signal(e){if(e.overtime>=12||e.completion<70||e.engagement<55)return'High';if(e.overtime>=8||e.absence>=2||e.completion<80||e.engagement<65)return'Watch';return'Steady'}
+function riskScore(e){return Math.min(100,Math.round(e.overtime*3.1+(100-e.completion)*.35+(100-e.engagement)*.15+e.absence*3))}
+function initials(name){return name.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()}
+function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmt(n){return Math.round(n).toLocaleString()}
+function showPage(page){
+ currentPage=page;$$('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));
+ $$('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+ const active=$('.nav-item.active');$('#crumbPage').textContent=active?active.textContent.trim().replace(/4$/,'').trim():page;
+ if(page==='people')renderEmployees();if(page==='data')renderDataRows();
+ setTimeout(()=>Object.values(charts).forEach(c=>{try{c.resize()}catch(e){}}),80);
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+$$('.nav-item').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+$$('[data-go]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.go)));
+$('#motionToggle').addEventListener('click',()=>{const paused=document.body.classList.toggle('motion-paused');$('#motionToggle').textContent=paused?'▶ Resume motion':'Ⅱ Pause motion';$('#motionToggle').setAttribute('aria-pressed',String(paused));Object.values(charts).forEach(c=>{if(c.options.animation)c.options.animation.duration=paused?0:700;c.update()});toast(paused?'Motion paused':'Motion resumed')});
+const tickerSignals=['<b>Capacity pulse</b> <em>updated</em> · Engineering at 96% of planned capacity','<b>Delivery watch</b> <em>flagged</em> · overtime and completion moving in opposite directions','<b>Workload scan</b> <em>complete</em> · 4 intervention opportunities identified','<b>Team health</b> <em>under review</em> · use engagement as a conversation prompt','<b>Focus-time pilot</b> <em>recommended</em> · reduce context switching'];
+const tickerBits=tickerSignals.map(x=>'<span>✳ &nbsp;'+x+'</span>').join('');
+$('#tickerTrack').innerHTML=tickerBits+tickerBits;
+function tickClock(){if(!document.body.classList.contains('motion-paused'))$('#clock').textContent='SYNC '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+tickClock();setInterval(tickClock,1000);
+function animateCounts(){ $$('.count').forEach(el=>{let target=Number(el.dataset.target),suffix=el.dataset.suffix||'',start=performance.now(),duration=850;function frame(now){let t=Math.min(1,(now-start)/duration),v=Math.round(target*(1-Math.pow(1-t,3)));el.textContent=v+suffix;if(t<1)requestAnimationFrame(frame)}requestAnimationFrame(frame)})}
+function chart(id,type,data,options={}){const el=document.getElementById(id);if(!el)return null;if(charts[id])charts[id].destroy();charts[id]=new Chart(el,{type,data,options:{responsive:true,maintainAspectRatio:false,animation:{duration:750},plugins:{legend:{labels:{usePointStyle:true,boxWidth:7,boxHeight:7,color:palette.muted,font:{family:'DM Sans',size:10},padding:15}},tooltip:{backgroundColor:'#322E3B',titleFont:{family:'DM Sans'},bodyFont:{family:'DM Sans'},padding:11,cornerRadius:8}},scales:{x:{ticks:{color:palette.muted,font:{family:'DM Sans',size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:palette.muted,font:{family:'DM Sans',size:9}},grid:{color:'#F0ECF2'},border:{display:false}}},...options}});return charts[id]}
+function initCharts(){
+ chart('trendChart','line',{labels:['Wk 1','Wk 2','Wk 3','Wk 4','Wk 5'],datasets:[
+ {label:'Output efficiency',data:[82,80,77,74,71],borderColor:palette.roseDeep,backgroundColor:'#F8B3C222',fill:true,tension:.38,borderWidth:3,pointRadius:3,pointBackgroundColor:palette.roseDeep},
+ {label:'Overtime index',data:[54,61,69,76,86],borderColor:'#8CBBA0',backgroundColor:'transparent',tension:.38,borderWidth:3,pointRadius:3,pointBackgroundColor:'#8CBBA0'}]}, {scales:{y:{min:40,max:100}}});
+ chart('pressureChart','bar',{labels:['Engineering','Operations','Sales','Product','Marketing','Analytics'],datasets:[{label:'Pressure score',data:[92,89,79,74,70,56],backgroundColor:[palette.roseDeep,palette.rose,'#EBC6D1',palette.blue,palette.lav,palette.mint],borderRadius:7,borderSkipped:false,maxBarThickness:23}]},{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{min:0,max:100,grid:{color:'#F0ECF2'}},y:{grid:{display:false}}}});
+ chart('healthChart','doughnut',{labels:['High pressure','Watch closely','Steady workload'],datasets:[{data:[25,42,33],backgroundColor:[palette.roseDeep,palette.lemon,palette.mint],borderColor:'#fff',borderWidth:4,hoverOffset:8}]},{cutout:'69%',plugins:{legend:{position:'bottom',labels:{padding:13}}}});
+ chart('capacityChart','bar',{labels:['Engineering','Operations','Sales','Product','Marketing','Analytics'],datasets:[{label:'Planned capacity',data:[200,170,160,150,140,130],backgroundColor:palette.blue,borderRadius:5},{label:'Assigned workload',data:[245,220,190,172,165,137],backgroundColor:palette.rose,borderRadius:5}]},{scales:{y:{beginAtZero:true}},plugins:{legend:{position:'bottom'}}});
+ chart('scatterChart','scatter',{datasets:[{label:'Employees',data:employees.map(e=>({x:e.engagement,y:e.completion,name:e.name})),backgroundColor:employees.map(e=>signal(e)==='High'?palette.roseDeep:signal(e)==='Watch'?'#D6C78A':'#8FC7A2'),pointRadius:6,pointHoverRadius:9}]},{scales:{x:{min:35,max:100,title:{display:true,text:'Engagement score',color:palette.muted,font:{size:10}},grid:{color:'#F0ECF2'}},y:{min:50,max:100,title:{display:true,text:'Task completion %',color:palette.muted,font:{size:10}}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.name}: engagement ${c.raw.x}, completion ${c.raw.y}%`}}}});
+ chart('impactChart','bar',{labels:['WIP rebalance','Overtime guardrail','Focus blocks','Capacity check-ins'],datasets:[{label:'Potential pressure reduction',data:[22,19,14,9],backgroundColor:[palette.rose, palette.mint,palette.blue,palette.lav],borderRadius:7,borderSkipped:false,maxBarThickness:35}]},{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,max:30,title:{display:true,text:'Illustrative reduction (%)',color:palette.muted,font:{size:9}}},y:{grid:{display:false}}}});
+ updateScenarioChart();
+}
+function recHtml(r,i){return `<div class="recommend"><div class="rec-icon">${r.icon}</div><div class="rec-copy"><strong>${r.title}</strong><p>${r.desc}</p><div class="rec-meta"><span>${r.impact}</span><span>${r.time}</span></div></div><span class="pill ${i===1?'mint':i===2?'blue':'lav'}">${r.priority}</span></div>`}
+$('#overviewRecs').innerHTML=recommendations.slice(0,3).map(recHtml).join('');
+$('#allRecs').innerHTML=recommendations.map(recHtml).join('');
+function renderChecklist(){const el=$('#actionChecklist');el.innerHTML=recommendations.map((r,i)=>`<label class="recommend" style="cursor:pointer;align-items:flex-start"><input type="checkbox" data-action="${i}" ${doneActions.has(i)?'checked':''} style="margin:3px 2px 0 0;accent-color:#D77893;width:16px;height:16px"><div class="rec-icon">${r.icon}</div><div class="rec-copy"><strong>${r.title}</strong><p>${r.desc}</p><div class="rec-meta"><span>${r.time}</span><span>${r.impact}</span></div></div></label>`).join('');el.querySelectorAll('input').forEach(c=>c.addEventListener('change',()=>{let i=Number(c.dataset.action);c.checked?doneActions.add(i):doneActions.delete(i);$('#checkProgress').textContent=`${doneActions.size} / 4 done`;toast('Action checklist updated')}))}
+renderChecklist();
+function renderEmployees(){
+ const q=$('#employeeSearch').value.toLowerCase(),team=$('#teamFilter').value,risk=$('#riskFilter').value,sort=$('#sortFilter').value;
+ let list=employees.filter(e=>(e.name+' '+e.role+' '+e.team).toLowerCase().includes(q)&&(team==='All'||e.team===team)&&(risk==='All'||signal(e)===risk));
+ list.sort((a,b)=>sort==='overtime'?b.overtime-a.overtime:sort==='completion'?a.completion-b.completion:sort==='engagement'?a.engagement-b.engagement:riskScore(b)-riskScore(a));
+ $('#employeeCount').textContent=`${list.length} employee${list.length===1?'':'s'}`;
+ $('#employeeRows').innerHTML=list.map((e,i)=>`<tr data-name="${esc(e.name)}" tabindex="0" style="cursor:pointer"><td><div class="employee"><span class="emp-avatar ${['','mint','blue','lav'][i%4]}">${initials(e.name)}</span><span>${esc(e.name)}<small style="display:block;font-size:9px;color:#9A91A2;font-weight:500;margin-top:3px">${esc(e.role)}</small></span></div></td><td>${esc(e.team)}</td><td>${e.hours}h</td><td><b style="color:${e.overtime>=12?'#B6657D':'#625A6B'}">${e.overtime}h</b></td><td>${e.absence}</td><td><div class="mini-bar">${e.completion}% <span><i style="width:${e.completion}%;background:${e.completion<70?palette.roseDeep:palette.mint}"></i></span></div></td><td>${e.engagement}/100</td><td><span class="status-pill ${signal(e).toLowerCase()}">${signal(e)}</span></td></tr>`).join('')||'<tr><td colspan="8" style="padding:25px;text-align:center;color:#9A91A2">No employees match these filters.</td></tr>';
+ $$('#employeeRows tr[data-name]').forEach(row=>{const pick=()=>selectEmployee(row.dataset.name);row.addEventListener('click',pick);row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}})});
+ updateScatter();
+}
+function selectEmployee(name){const e=employees.find(x=>x.name===name);if(!e)return;selectedEmployee=name;const sig=signal(e),advice=sig==='High'?'Review work-in-progress, remove a lower-priority commitment and check whether deadlines or dependencies are realistic.':sig==='Watch'?'Discuss workload predictability, blockers and meeting load; monitor the next two delivery cycles.':'Maintain current allocation and check that workload remains sustainable.';$('#employeeDetail').innerHTML=`<div style="display:flex;align-items:center;gap:11px;margin-bottom:14px"><div class="emp-avatar" style="width:42px;height:42px;font-size:12px">${initials(e.name)}</div><div><strong style="display:block;color:var(--ink);font:800 14px Manrope">${esc(e.name)}</strong><span style="font-size:10px">${esc(e.role)} · ${esc(e.team)}</span></div><span class="status-pill ${sig.toLowerCase()}" style="margin-left:auto">${sig}</span></div><div class="scenario-stats"><div class="scenario-stat"><span>Overtime / week</span><strong>${e.overtime}h</strong></div><div class="scenario-stat"><span>Task completion</span><strong>${e.completion}%</strong></div><div class="scenario-stat"><span>Engagement pulse</span><strong>${e.engagement}/100</strong></div><div class="scenario-stat"><span>Absence days</span><strong>${e.absence}</strong></div></div><div style="margin-top:14px;padding:12px;background:#F8F4FA;border-radius:10px"><strong style="font-size:10px">Suggested manager check-in</strong><p style="font-size:10px;line-height:1.6;color:#817587;margin:6px 0 0">${advice}</p></div><p style="font-size:9px;color:#A49AA9;margin-top:10px">Signal is a workload-planning aid, not a judgement of individual capability or health.</p>`}
+function updateScatter(){if(charts.scatterChart){charts.scatterChart.data.datasets[0].data=employees.map(e=>({x:e.engagement,y:e.completion,name:e.name}));charts.scatterChart.data.datasets[0].backgroundColor=employees.map(e=>signal(e)==='High'?palette.roseDeep:signal(e)==='Watch'?'#D6C78A':'#8FC7A2');charts.scatterChart.update()}}
+function renderHeatmap(){
+ const days=['Mon','Tue','Wed','Thu','Fri'],data=[['Engineering',[4,5,5,4,5]],['Operations',[4,4,5,5,4]],['Sales',[3,4,4,4,3]],['Product',[3,4,3,4,3]],['Marketing',[2,3,4,3,3]],['Analytics',[2,2,3,3,2]]];
+ let h='<div></div>'+days.map(d=>`<div class="heat-head">${d}</div>`).join('');
+ data.forEach(([team,vals])=>{h+=`<div class="heat-label">${team}</div>`+vals.map((v,i)=>`<button type="button" class="heat-cell heat-${v}" data-team="${team}" data-day="${days[i]}" data-score="${v}" aria-label="${team} ${days[i]} pressure ${v}">${v*20}%</button>`).join('')});
+ $('#heatmap').innerHTML=h;
+ $$('.heat-cell').forEach(c=>c.addEventListener('click',()=>{$$('.heat-cell').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');const score=Number(c.dataset.score),team=c.dataset.team,day=c.dataset.day;$('#heatDetail').innerHTML=`<strong>${team} · ${day} pressure ${score*20}%</strong><br>${score>=4?'High pressure: review open work, dependency waits and task ownership.':'Moderate pressure: check capacity allocation and avoid adding unplanned work.'} <span style="color:#9A8EA0">Illustrative team-level indicator.</span>`}));
+}
+const bottlenecks=[
+['Engineering','16h average overtime','92%','Interruptions + unresolved dependencies','Limit WIP; unblock dependencies'],
+['Operations','Repeated missed handoffs','89%','Uneven demand and manual repeat work','Standardise handoffs; automate repeats'],
+['Sales','High weekly hours','79%','Meeting load and admin overhead','Batch reporting; protect customer time'],
+['Product','Scope changes late in sprint','74%','Priorities changing mid-cycle','Use intake gate; clarify acceptance criteria']
+];
+$('#bottleneckRows').innerHTML=bottlenecks.map((r,i)=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td><span class="status-pill ${i<2?'high':'watch'}">${r[2]}</span></td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join('');
+function fillTeamFilter(){teams.forEach(t=>$('#teamFilter').insertAdjacentHTML('beforeend',`<option value="${t}">${t}</option>`))}
+fillTeamFilter();
+['employeeSearch','teamFilter','riskFilter','sortFilter'].forEach(id=>$('#'+id).addEventListener(id==='employeeSearch'?'input':'change',renderEmployees));
+function csvEscape(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
+function downloadCsv(filename,rows){const blob=new Blob([rows.map(r=>r.map(csvEscape).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+const cols=['name','role','team','hours','overtime','absence','completion','engagement'];
+function exportEmployees(list=employees){downloadCsv('pulsework-employee-signals.csv',[cols,...list.map(e=>cols.map(c=>e[c]))]);toast('CSV export prepared')}
+$('#exportPeople').addEventListener('click',()=>{const q=$('#employeeSearch').value.toLowerCase(),team=$('#teamFilter').value,risk=$('#riskFilter').value;exportEmployees(employees.filter(e=>(e.name+' '+e.role+' '+e.team).toLowerCase().includes(q)&&(team==='All'||e.team===team)&&(risk==='All'||signal(e)===risk)))});
+$('#exportAll').addEventListener('click',()=>exportEmployees());
+$('#templateBtn').addEventListener('click',()=>downloadCsv('pulsework-workforce-template.csv',[cols,['Example Name','Project Analyst','Analytics',45,5,0,88,76],['Example Name 2','Operations Lead','Operations',52,12,1,70,58]]));
+$('#loadCsv').addEventListener('click',async()=>{
+ const file=$('#csvFile').files[0];if(!file){toast('Choose a CSV file first');return}
+ try{
+  const text=await file.text(),rows=parseCSV(text);if(rows.length<2)throw new Error('CSV needs a header and at least one data row');
+  const headers=rows[0].map(h=>h.trim().toLowerCase().replace(/\s+/g,'_'));
+  const required=['name','role','team','hours','overtime','absence','completion','engagement'];
+  const missing=required.filter(c=>!headers.includes(c));if(missing.length)throw new Error('Missing columns: '+missing.join(', '));
+  const idx=Object.fromEntries(required.map(k=>[k,headers.indexOf(k)]));
+  const imported=rows.slice(1).filter(r=>r.some(v=>v.trim())).map(r=>{const e={};required.forEach(k=>e[k]=r[idx[k]]?.trim()||'');['hours','overtime','absence','completion','engagement'].forEach(k=>e[k]=Number(e[k]));return e}).filter(e=>e.name&&e.role&&e.team&&['hours','overtime','absence','completion','engagement'].every(k=>Number.isFinite(e[k])));
+  if(!imported.length)throw new Error('No valid employee rows found');
+  employees=imported.slice(0,500).map(e=>({...e,hours:clamp(e.hours,0,100),overtime:clamp(e.overtime,0,80),absence:clamp(e.absence,0,365),completion:clamp(e.completion,0,100),engagement:clamp(e.engagement,0,100)}));
+  const newTeams=[...new Set(employees.map(e=>e.team))];$('#teamFilter').innerHTML='<option value="All">All teams</option>'+newTeams.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+  renderEmployees();renderDataRows();updateScatter();$('#importStatus').textContent=`Imported ${employees.length} valid records from ${file.name}.`;toast('Workforce data imported locally');
+ }catch(err){$('#importStatus').textContent='Import error: '+err.message;toast('CSV import failed')}
+});
+function clamp(n,min,max){return Math.max(min,Math.min(max,n))}
+function parseCSV(text){const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const c=text[i],next=text[i+1];if(c==='"'&&quoted&&next==='"'){cell+='"';i++}else if(c==='"'){quoted=!quoted}else if(c===','&&!quoted){row.push(cell);cell=''}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&next==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}else cell+=c}if(cell.length||row.length){row.push(cell);rows.push(row)}return rows}
+function renderDataRows(){$('#dataRows').innerHTML=employees.slice(0,100).map(e=>`<tr><td>${esc(e.name)}</td><td>${esc(e.role)}</td><td>${esc(e.team)}</td><td>${e.hours}</td><td>${e.overtime}</td><td>${e.absence}</td><td>${e.completion}%</td><td>${e.engagement}</td></tr>`).join('')}
+function updateScenario(){
+ const reb=Number($('#rebalance').value),aut=Number($('#automation').value),meet=Number($('#meeting').value),rec=Number($('#recovery').value);
+ $('#rebalanceOut').textContent=reb+'%';$('#automationOut').textContent=aut+'%';$('#meetingOut').textContent=meet+'%';$('#recoveryOut').textContent=rec+' h';
+ const points=Math.round(reb*.22+aut*.28+meet*.22+rec*1.3),completion=clamp(78+points,78,96),ot=Math.round(reb*.5+aut*.45+meet*.38+rec*2),pressure=Math.round(reb*.25+aut*.2+meet*.28+rec*1.4),eff=Math.round(reb*.15+aut*.35+meet*.2+rec*.8);
+ $('#scenarioCompletion').textContent=completion+'%';$('#scenarioProgress').style.width=completion+'%';$('#scenarioCaption').textContent='+'+(completion-78)+' pts vs. current baseline';
+ $('#overtimeReduction').textContent='−'+ot+'%';$('#pressureReduction').textContent='−'+pressure+' pts';$('#efficiencyGain').textContent='+'+eff+'%';
+ $('#interventionMix').textContent=(reb>=20&&aut>=15&&meet>=10)?'Balanced':(aut>=20?'Automation-led':reb>=20?'Rebalance-led':'Targeted');
+ if(charts.scenarioChart){const vals=[completion,clamp(100-(684/10),0,100),clamp(91-pressure,40,100),clamp(74+eff,0,100)];charts.scenarioChart.data.datasets[1].data=vals;charts.scenarioChart.update()}
+}
+function updateScenarioChart(){chart('scenarioChart','bar',{labels:['On-time completion','Overtime control','Capacity headroom','Output efficiency'],datasets:[{label:'Current baseline',data:[78,32,35,74],backgroundColor:palette.blue,borderRadius:6},{label:'Proposed scenario',data:[86,51,48,85],backgroundColor:palette.rose,borderRadius:6}]},{scales:{y:{min:0,max:100}},plugins:{legend:{position:'bottom'}}});updateScenario()}
+['rebalance','automation','meeting','recovery'].forEach(id=>$('#'+id).addEventListener('input',updateScenario));
+$('#resetScenario').addEventListener('click',()=>{[['rebalance',15],['automation',10],['meeting',12],['recovery',2]].forEach(([id,v])=>$('#'+id).value=v);updateScenario();toast('Scenario reset to baseline assumptions')});
+$('#saveScenario').addEventListener('click',()=>{const summary=`PulseWork scenario summary\nPotential on-time completion: ${$('#scenarioCompletion').textContent}\n${$('#scenarioCaption').textContent}\nOvertime reduction: ${$('#overtimeReduction').textContent}\nCapacity pressure reduction: ${$('#pressureReduction').textContent}\nOutput efficiency gain: ${$('#efficiencyGain').textContent}\nAssumptions: workload redistributed ${$('#rebalance').value}%; repetitive work automated ${$('#automation').value}%; meeting load reduced ${$('#meeting').value}%; protected focus/recovery ${$('#recovery').value} hours.\nNote: illustrative scenario, not a validated predictive model.`;const blob=new Blob([summary],{type:'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='pulsework-scenario-summary.txt';a.click();URL.revokeObjectURL(url);toast('Scenario summary downloaded')});
+$('#refreshBtn').addEventListener('click',()=>{Object.values(charts).forEach(c=>c.update('active'));animateCounts();toast('Dashboard signals refreshed')});
+renderHeatmap();renderEmployees();renderDataRows();initCharts();animateCounts();
+})();
+</script>
+</body>
+</html>
